@@ -95,8 +95,7 @@ const SNPCoverageTooltip = observer(
     clientRect?: DOMRect
   }) => {
     const { model } = props
-    const { featureUnderMouse: feat } = model
-    return feat && feat.get('type') === 'skip' ? null : (
+    return model.featureUnderMouse?.get('type') === 'skip' ? null : (
       <Tooltip TooltipContents={TooltipContents} {...props} />
     )
   },
