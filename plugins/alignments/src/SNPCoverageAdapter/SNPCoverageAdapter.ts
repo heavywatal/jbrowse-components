@@ -75,10 +75,10 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
       const { subadapter } = await this.configure()
       let stream = subadapter.getFeatures(region, opts)
 
-      if (opts.filters) {
-        const { filters } = opts
-        stream = stream.pipe(filter(f => filters.passes(f, opts)))
-      }
+      // if (opts.filters) {
+      //   const { filters } = opts
+      //   stream = stream.pipe(filter(f => filters.passes(f, opts)))
+      // }
 
       const { bins, skipmap } = await this.generateCoverageBins(
         stream,

@@ -115,7 +115,7 @@ export default class FeatureRendererType extends ServerSideRendererType {
     const serialized = super.serializeResultsInWorker(result, args)
     return {
       ...serialized,
-      features: iterMap(result.features.values(), f => f.toJSON()),
+      features: [], //iterMap(result.features.values(), f => f.toJSON()),
     }
   }
 
@@ -181,7 +181,6 @@ export default class FeatureRendererType extends ServerSideRendererType {
     await featureObservable
       .pipe(
         tap(() => checkAbortSignal(signal)),
-        filter(feature => this.featurePassesFilters(renderArgs, feature)),
         tap(feature => {
           const id = feature.id()
           if (!id) {
