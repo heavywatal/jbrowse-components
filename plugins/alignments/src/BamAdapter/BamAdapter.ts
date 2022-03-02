@@ -149,7 +149,7 @@ export default class BamAdapter extends BaseFeatureDataAdapter {
         const trimEnd = Math.min(end - chunkStart, chunkEnd - chunkStart)
         const trimLength = trimEnd - trimStart
         const chunkSeq = chunk.get('seq') || chunk.get('residues')
-        trimmed.push(chunkSeq.substr(trimStart, trimLength))
+        trimmed.push(chunkSeq.slice(trimStart, trimStart + trimLength))
       })
 
     const sequence = trimmed.join('')

@@ -113,7 +113,7 @@ export default class CramAdapter extends BaseFeatureDataAdapter {
         const trimEnd = Math.min(end - chunkStart, chunkEnd - chunkStart)
         const trimLength = trimEnd - trimStart
         const chunkSeq = chunk.get('seq') || chunk.get('residues')
-        return chunkSeq.substr(trimStart, trimLength)
+        return chunkSeq.slice(trimStart, trimStart + trimLength)
       })
       .join('')
 
