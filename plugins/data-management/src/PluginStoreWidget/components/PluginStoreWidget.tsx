@@ -5,10 +5,11 @@ import { getEnv } from 'mobx-state-tree'
 import {
   Accordion,
   AccordionSummary,
-  TextField,
-  InputAdornment,
   Button,
+  InputAdornment,
+  LinearProgress,
   IconButton,
+  TextField,
   Typography,
   makeStyles,
 } from '@material-ui/core'
@@ -54,6 +55,7 @@ function PluginStoreWidget({ model }: { model: PluginStoreModel }) {
   const classes = useStyles()
   const [pluginArray, setPluginArray] = useState<JBrowsePlugin[]>()
   const [error, setError] = useState<unknown>()
+  const [loading, setLoading] = useState(false)
   const [customPluginFormOpen, setCustomPluginFormOpen] = useState(false)
   const { adminMode } = getSession(model)
   const { pluginManager } = getEnv(model)
@@ -64,6 +66,7 @@ function PluginStoreWidget({ model }: { model: PluginStoreModel }) {
 
     ;(async () => {
       try {
+        setLoading(true)
         const response = await fetch(
           'https://jbrowse.org/plugin-store/plugins.json',
           { signal },
@@ -81,6 +84,8 @@ function PluginStoreWidget({ model }: { model: PluginStoreModel }) {
       } catch (e) {
         console.error(e)
         setError(e)
+      } finally {
+        setLoading(false)
       }
     })()
 
@@ -137,7 +142,10 @@ function PluginStoreWidget({ model }: { model: PluginStoreModel }) {
           ),
         }}
       />
-      <Accordion defaultExpanded>
+      <Accordion
+        defaultExpanded
+        TransitionProps={{ unmountOnExit: true, timeout: 0 }}
+      >
         <AccordionSummary
           expandIcon={<ExpandMoreIcon className={classes.expandIcon} />}
         >
@@ -147,18 +155,26 @@ function PluginStoreWidget({ model }: { model: PluginStoreModel }) {
           <InstalledPluginsList pluginManager={pluginManager} model={model} />
         </div>
       </Accordion>
-      <Accordion defaultExpanded>
+      <Accordion
+        defaultExpanded
+        TransitionProps={{ unmountOnExit: true, timeout: 0 }}
+      >
         <AccordionSummary
           expandIcon={<ExpandMoreIcon className={classes.expandIcon} />}
         >
           <Typography variant="h5">Available plugins</Typography>
         </AccordionSummary>
-        {error ? (
+        {loading ? (
+          <div>
+            Loading...
+            <LinearProgress />
+          </div>
+        ) : error ? (
           <Typography color="error">{`${error}`}</Typography>
         ) : pluginArray ? (
           pluginArray
             .filter(plugin => {
-              // If pugin only has cjsUrl, don't display outside desktop
+              // If plugin only has cjsUrl, don't display outside desktop
               if (
                 !isElectron &&
                 !(plugin.esmUrl || plugin.url || plugin.umdUrl)
