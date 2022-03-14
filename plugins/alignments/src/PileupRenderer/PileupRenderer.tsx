@@ -22,7 +22,6 @@ import { readConfObject } from '@jbrowse/core/configuration'
 // locals
 import {
   Mismatch,
-  parseCigar,
   getModificationPositions,
   getNextRefPos,
 } from '../BamAdapter/MismatchParser'
@@ -273,30 +272,37 @@ export default class PileupRenderer extends BoxRendererType {
     const { feature, topPx, heightPx } = feat
     const qual: string = feature.get('qual') || ''
     const scores = qual.split(' ').map(val => +val)
-    const cigarOps = parseCigar(feature.get('CIGAR'))
+    const cigarString = feature.get('CIGAR')
     const width = 1 / bpPerPx
     const start = feature.get('start')
 
-    for (let i = 0, j = 0, k = 0; k < scores.length; i += 2, k++) {
-      const len = +cigarOps[i]
-      const op = cigarOps[i + 1]
-      if (op === 'S' || op === 'I') {
-        k += len
-      } else if (op === 'D' || op === 'N') {
-        j += len
-      } else if (op === 'M' || op === 'X' || op === '=') {
-        for (let m = 0; m < len; m++) {
-          const score = scores[k + m]
-          ctx.fillStyle = `hsl(${score === 255 ? 150 : score * 1.5},55%,50%)`
-          const [leftPx] = bpSpanPx(
-            start + j + m,
-            start + j + m + 1,
-            region,
-            bpPerPx,
-          )
-          ctx.fillRect(leftPx, topPx, width + 0.5, heightPx)
+    let currLen = ''
+    for (let i = 0, j = 0, k = 0; k < scores.length; i++) {
+      const d = cigarString[i]
+      if (d >= '0' && d <= '9') {
+        currLen += d
+      } else {
+        const len = +currLen
+        const op = d
+        if (op === 'S' || op === 'I') {
+          k += len
+        } else if (op === 'D' || op === 'N') {
+          j += len
+        } else if (op === 'M' || op === 'X' || op === '=') {
+          for (let m = 0; m < len; m++) {
+            const score = scores[k + m]
+            ctx.fillStyle = `hsl(${score === 255 ? 150 : score * 1.5},55%,50%)`
+            const [leftPx] = bpSpanPx(
+              start + j + m,
+              start + j + m + 1,
+              region,
+              bpPerPx,
+            )
+            ctx.fillRect(leftPx, topPx, width + 0.5, heightPx)
+          }
+          j += len
+          k++
         }
-        j += len
       }
     }
   }
@@ -339,7 +345,6 @@ export default class PileupRenderer extends BoxRendererType {
     const end = feature.get('end')
     const seq = feature.get('seq')
     const strand = feature.get('strand')
-    const cigarOps = parseCigar(cigar)
 
     const modifications = getModificationPositions(mm, seq, strand)
 
