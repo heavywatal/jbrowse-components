@@ -23,12 +23,12 @@ export function cigarToMismatches(
   const mismatches: Mismatch[] = []
   let currLen = ''
   for (let i = 0; i < cigarString.length; i++) {
-    const d = cigarString.codePointAt(i) as number
-    if (d >= 48 && d <= 57) {
-      currLen += cigarString[i]
+    const d = cigarString[i]
+    if (d >= '0' && d <= '9') {
+      currLen += d
     } else {
       const len = +currLen
-      const op = cigarString[i]
+      const op = d
       currLen = ''
       if (op === 'M' || op === '=' || op === 'E') {
         seqOffset += len
@@ -140,12 +140,12 @@ export function mdToMismatches(
       i < cigarString.length && refOffset <= refCoord;
       i++, lastCigar = i
     ) {
-      const d = cigarString.codePointAt(i) as number
-      if (d >= 48 && d <= 57) {
+      const d = cigarString[i]
+      if (d >= '0' && d <= '9') {
         currLen += cigarString[i]
       } else {
         const len = +currLen
-        const op = cigarString[i]
+        const op = d
         currLen = ''
         if (op === 'S' || op === 'I') {
           templateOffset += len
@@ -235,12 +235,12 @@ export function generateMD(target: string, query: string, cigarString: string) {
   let str = ''
   let currLen = ''
   for (let i = 0; i < cigarString.length; i++) {
-    const d = cigarString.codePointAt(i) as number
-    if (d >= 48 && d <= 57) {
-      currLen += cigarString[i]
+    const d = cigarString[i]
+    if (d >= '0' && d <= '9') {
+      currLen += d
     } else {
       const len = +currLen
-      const op = cigarString[i]
+      const op = d
       currLen = ''
       if (op === 'M' || op === 'X' || op === '=') {
         for (let j = 0; j < len; j++) {
@@ -290,8 +290,8 @@ export function* getNextRefPos(cigarString: string, positions: number[]) {
     const pos = positions[i]
     let currLen = ''
     for (; cigarIdx < cigarString.length && readPos < pos; cigarIdx++) {
-      const d = cigarString.codePointAt(cigarIdx) as number
-      if (d >= 48 && d <= 57) {
+      const d = cigarString[cigarIdx]
+      if (d >= '0' && d <= '9') {
         currLen += cigarString[cigarIdx]
       } else {
         const len = +currLen
