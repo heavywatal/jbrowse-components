@@ -5,7 +5,6 @@ import {
 } from '@jbrowse/core/util/simpleFeature'
 import { BamRecord } from '@gmod/bam'
 import {
-  parseCigar,
   generateMD,
   cigarToMismatches,
   mdToMismatches,
@@ -163,14 +162,12 @@ export default class BamSlightlyLazyFeature implements Feature {
   ) {
     const { cigarAttributeName } = opts
     let mismatches: Mismatch[] = []
-    let cigarOps: string[] = []
 
     // parse the CIGAR tag if it has one
     const cigarString = this.get(cigarAttributeName)
     if (cigarString) {
-      cigarOps = parseCigar(cigarString)
       mismatches = mismatches.concat(
-        cigarToMismatches(cigarOps, this.get('seq'), this.qualRaw()),
+        cigarToMismatches(cigarString, this.get('seq'), this.qualRaw()),
       )
     }
     return mismatches
@@ -184,22 +181,20 @@ export default class BamSlightlyLazyFeature implements Feature {
     mdAttributeName?: string
   } = {}) {
     let mismatches: Mismatch[] = []
-    let cigarOps: string[] = []
 
     // parse the CIGAR tag if it has one
-    const cigarString = this.get(cigarAttributeName)
+    const cigar = this.get(cigarAttributeName)
     const seq = this.get('seq')
     const qual = this.qualRaw()
-    if (cigarString) {
-      cigarOps = parseCigar(cigarString)
-      mismatches = mismatches.concat(cigarToMismatches(cigarOps, seq, qual))
+    if (cigar) {
+      mismatches = mismatches.concat(cigarToMismatches(cigar, seq, qual))
     }
 
     // now let's look for CRAM or MD mismatches
     const mdString = this.get(mdAttributeName)
     if (mdString) {
       mismatches = mismatches.concat(
-        mdToMismatches(mdString, cigarOps, mismatches, seq, qual),
+        mdToMismatches(mdString, cigar, mismatches, seq, qual),
       )
     }
 

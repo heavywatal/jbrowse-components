@@ -15,62 +15,70 @@ const seq =
 // and http://seqanswers.com/forums/showthread.php?t=8978
 
 test('cigar to mismatches', () => {
-  expect(cigarToMismatches(parseCigar('56M1D45M'), seq)).toEqual([
+  expect(cigarToMismatches('56M1D45M', seq)).toEqual([
     { start: 56, type: 'deletion', base: '*', length: 1 },
   ])
 })
 
 test('md to mismatches', () => {
-  const cigarMismatches = cigarToMismatches(parseCigar('56M1D45M'), seq)
-  expect(
-    mdToMismatches('10A80', parseCigar('56M1D45M'), cigarMismatches, seq),
-  ).toEqual([
+  const cigarMismatches = cigarToMismatches('56M1D45M', seq)
+  expect(mdToMismatches('10A80', '56M1D45M', cigarMismatches, seq)).toEqual([
     { start: 10, type: 'mismatch', base: 'C', altbase: 'A', length: 1 },
   ])
 })
 
-test('get mismatches', () => {
-  // simple deletion
-  expect(getMismatches('56M1D45M', '56^A45', seq)).toEqual([
-    { start: 56, type: 'deletion', base: '*', length: 1 },
-  ])
+describe('get mismatches', () => {
+  it('simple deletion', () => {
+    // simple deletion
+    expect(getMismatches('56M1D45M', '56^A45', seq)).toEqual([
+      { start: 56, type: 'deletion', base: '*', length: 1 },
+    ])
+  })
 
-  // simple insertion
-  expect(
-    getMismatches(
-      '89M1I11M',
-      '100',
-      'AAAAAAAAAACAAAAAAAAAAAAAACCCCCCCCCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTTTTTTTTA',
-    ),
-  ).toEqual([{ start: 89, type: 'insertion', base: '1', length: 0 }])
+  it('simple insertion', () => {
+    // simple insertion
+    expect(
+      getMismatches(
+        '89M1I11M',
+        '100',
+        'AAAAAAAAAACAAAAAAAAAAAAAACCCCCCCCCCCCCCCCCCCCCCCCCGGGGGGGGGGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTTTTTTTTA',
+      ),
+    ).toEqual([{ start: 89, type: 'insertion', base: '1', length: 0 }])
+  })
 
-  // contains a deletion and a SNP
-  // read GGGGG--ATTTTTT
-  //      |||||   ||||||
-  //      GGGGGACCTTTTTT
-  expect(getMismatches('5M2D6M', '5^AC0C5', 'GGGGGATTTTTT')).toEqual([
-    { start: 5, type: 'deletion', base: '*', length: 2 },
-    { start: 7, type: 'mismatch', base: 'A', altbase: 'C', length: 1 },
-  ])
+  it('deletion and a SNP', () => {
+    // contains a deletion and a SNP
+    // read GGGGG--ATTTTTT
+    //      |||||   ||||||
+    //      GGGGGACCTTTTTT
+    expect(getMismatches('5M2D6M', '5^AC0C5', 'GGGGGATTTTTT')).toEqual([
+      { start: 5, type: 'deletion', base: '*', length: 2 },
+      { start: 7, type: 'mismatch', base: 'A', altbase: 'C', length: 1 },
+    ])
+  })
 
-  // 0-length MD entries, which indicates two SNPs right next to each other
-  // "They generally occur between SNPs, or between a deletion then a SNP."
-  // http://seqanswers.com/forums/showthread.php?t=8978
-  //
-  // read GGGGGCATTTTT
-  //      |||||  |||||
-  // ref  GGGGGACTTTTT
-  expect(getMismatches('12M', '5A0C5', 'GGGGGCATTTTT')).toEqual([
-    { altbase: 'A', base: 'C', length: 1, start: 5, type: 'mismatch' },
-    { altbase: 'C', base: 'A', length: 1, start: 6, type: 'mismatch' },
-  ])
+  it('0-length MD entries', () => {
+    // 0-length MD entries, which indicates two SNPs right next to each other
+    // "They generally occur between SNPs, or between a deletion then a SNP."
+    // http://seqanswers.com/forums/showthread.php?t=8978
+    //
+    // read GGGGGCATTTTT
+    //      |||||  |||||
+    // ref  GGGGGACTTTTT
+    expect(getMismatches('12M', '5A0C5', 'GGGGGCATTTTT')).toEqual([
+      { altbase: 'A', base: 'C', length: 1, start: 5, type: 'mismatch' },
+      { altbase: 'C', base: 'A', length: 1, start: 6, type: 'mismatch' },
+    ])
+  })
 
-  // same as above but with the non-0-length MD string
-  // not sure if it is entirely legal, but may appear in the wild
-  expect(getMismatches('12M', '5AC5', 'GGGGGCATTTTT')).toEqual([
-    { altbase: 'A', base: 'C', length: 1, start: 5, type: 'mismatch' },
-    { altbase: 'C', base: 'A', length: 1, start: 6, type: 'mismatch' },
-  ])
+  it('non-0-length-MD string', () => {
+    // same as above but with the non-0-length MD string
+    // not sure if it is entirely legal, but may appear in the wild
+    expect(getMismatches('12M', '5AC5', 'GGGGGCATTTTT')).toEqual([
+      { altbase: 'A', base: 'C', length: 1, start: 5, type: 'mismatch' },
+      { altbase: 'C', base: 'A', length: 1, start: 6, type: 'mismatch' },
+    ])
+  })
 })
 
 test('basic skip', () => {
@@ -477,15 +485,13 @@ I3M1I2M1I6M1D43M1I33M1I27M1I13M2D6M1I59M1I5M1I6M2I39M1I9M1I28M1D43M2I5M2I8M1D15M
 
 test('getNextRefPos basic', () => {
   const cigar = '10S10M1I4M1D15M'
-  const cigarOps = parseCigar(cigar)
-  const iter = getNextRefPos(cigarOps, [5, 10, 15, 20, 25, 30, 35])
+  const iter = getNextRefPos(cigar, [5, 10, 15, 20, 25, 30, 35])
   const [...vals] = iter
   expect(vals).toEqual([-5, 0, 5, 10, 14, 20, 25])
 })
 test('getNextRefPos with many indels', () => {
   const cigar = '10S4M1D1IM10'
-  const cigarOps = parseCigar(cigar)
-  const iter = getNextRefPos(cigarOps, [5, 10, 15])
+  const iter = getNextRefPos(cigar, [5, 10, 15])
   const [...vals] = iter
   expect(vals).toEqual([-5, 0, 5])
 })
