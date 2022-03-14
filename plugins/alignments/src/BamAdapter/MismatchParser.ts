@@ -14,76 +14,83 @@ export function parseCigar(cigar: string) {
   return (cigar || '').split(/([MIDNSHPX=])/)
 }
 export function cigarToMismatches(
-  ops: string[],
+  cigarString: string,
   seq: string,
   qual?: Buffer,
 ): Mismatch[] {
   let currOffset = 0
   let seqOffset = 0
   const mismatches: Mismatch[] = []
-  for (let i = 0; i < ops.length - 1; i += 2) {
-    const len = +ops[i]
-    const op = ops[i + 1]
-    if (op === 'M' || op === '=' || op === 'E') {
-      seqOffset += len
-    }
-    if (op === 'I') {
-      mismatches.push({
-        start: currOffset,
-        type: 'insertion',
-        base: `${len}`,
-        length: 0,
-      })
-      seqOffset += len
-    } else if (op === 'D') {
-      mismatches.push({
-        start: currOffset,
-        type: 'deletion',
-        base: '*',
-        length: len,
-      })
-    } else if (op === 'N') {
-      mismatches.push({
-        start: currOffset,
-        type: 'skip',
-        base: 'N',
-        length: len,
-      })
-    } else if (op === 'X') {
-      const r = seq.slice(seqOffset, seqOffset + len)
-      const q = qual?.slice(seqOffset, seqOffset + len) || []
-
-      for (let j = 0; j < len; j++) {
+  let currLen = ''
+  for (let i = 0; i < cigarString.length; i++) {
+    const d = cigarString.codePointAt(i) as number
+    if (d >= 48 && d <= 57) {
+      currLen += cigarString[i]
+    } else {
+      const len = +currLen
+      const op = cigarString[i]
+      currLen = ''
+      if (op === 'M' || op === '=' || op === 'E') {
+        seqOffset += len
+      }
+      if (op === 'I') {
         mismatches.push({
-          start: currOffset + j,
-          type: 'mismatch',
-          base: r[j],
-          qual: q[j],
+          start: currOffset,
+          type: 'insertion',
+          base: `${len}`,
+          length: 0,
+        })
+        seqOffset += len
+      } else if (op === 'D') {
+        mismatches.push({
+          start: currOffset,
+          type: 'deletion',
+          base: '*',
+          length: len,
+        })
+      } else if (op === 'N') {
+        mismatches.push({
+          start: currOffset,
+          type: 'skip',
+          base: 'N',
+          length: len,
+        })
+      } else if (op === 'X') {
+        const r = seq.slice(seqOffset, seqOffset + len)
+        const q = qual?.slice(seqOffset, seqOffset + len) || []
+
+        for (let j = 0; j < len; j++) {
+          mismatches.push({
+            start: currOffset + j,
+            type: 'mismatch',
+            base: r[j],
+            qual: q[j],
+            length: 1,
+          })
+        }
+        seqOffset += len
+      } else if (op === 'H') {
+        mismatches.push({
+          start: currOffset,
+          type: 'hardclip',
+          base: `H${len}`,
+          cliplen: len,
           length: 1,
         })
+      } else if (op === 'S') {
+        mismatches.push({
+          start: currOffset,
+          type: 'softclip',
+          base: `S${len}`,
+          cliplen: len,
+          length: 1,
+        })
+        seqOffset += len
       }
-      seqOffset += len
-    } else if (op === 'H') {
-      mismatches.push({
-        start: currOffset,
-        type: 'hardclip',
-        base: `H${len}`,
-        cliplen: len,
-        length: 1,
-      })
-    } else if (op === 'S') {
-      mismatches.push({
-        start: currOffset,
-        type: 'softclip',
-        base: `S${len}`,
-        cliplen: len,
-        length: 1,
-      })
-      seqOffset += len
-    }
 
-    if (op !== 'I' && op !== 'S' && op !== 'H') {
-      currOffset += len
+      if (op !== 'I' && op !== 'S' && op !== 'H') {
+        currOffset += len
+      }
     }
   }
   return mismatches
@@ -95,7 +102,7 @@ export function cigarToMismatches(
  */
 export function mdToMismatches(
   mdstring: string,
-  cigarOps: string[],
+  cigarString: string,
   cigarMismatches: Mismatch[],
   seq: string,
   qual?: Buffer,
@@ -127,20 +134,27 @@ export function mdToMismatches(
   function getTemplateCoordLocal(refCoord: number): number {
     let templateOffset = lastTemplateOffset
     let refOffset = lastRefOffset
+    let currLen = ''
     for (
       let i = lastCigar;
-      i < cigarOps.length && refOffset <= refCoord;
-      i += 2, lastCigar = i
+      i < cigarString.length && refOffset <= refCoord;
+      i++, lastCigar = i
     ) {
-      const len = +cigarOps[i]
-      const op = cigarOps[i + 1]
-      if (op === 'S' || op === 'I') {
-        templateOffset += len
-      } else if (op === 'D' || op === 'P' || op === 'N') {
-        refOffset += len
-      } else if (op !== 'H') {
-        templateOffset += len
-        refOffset += len
+      const d = cigarString.codePointAt(i) as number
+      if (d >= 48 && d <= 57) {
+        currLen += cigarString[i]
+      } else {
+        const len = +currLen
+        const op = cigarString[i]
+        currLen = ''
+        if (op === 'S' || op === 'I') {
+          templateOffset += len
+        } else if (op === 'D' || op === 'P' || op === 'N') {
+          refOffset += len
+        } else if (op !== 'H') {
+          templateOffset += len
+          refOffset += len
+        }
       }
     }
     lastTemplateOffset = templateOffset
@@ -176,7 +190,7 @@ export function mdToMismatches(
             break
           }
         }
-        const s = cigarOps ? getTemplateCoordLocal(curr.start) : curr.start
+        const s = cigarString ? getTemplateCoordLocal(curr.start) : curr.start
         curr.base = seq ? seq.substr(s, 1) : 'X'
         const qualScore = qual?.slice(s, s + 1)[0]
         if (qualScore) {
@@ -190,24 +204,6 @@ export function mdToMismatches(
   return mismatchRecords
 }
 
-export function getTemplateCoord(refCoord: number, cigarOps: string[]): number {
-  let templateOffset = 0
-  let refOffset = 0
-  for (let i = 0; i < cigarOps.length && refOffset <= refCoord; i += 2) {
-    const len = +cigarOps[i]
-    const op = cigarOps[i + 1]
-    if (op === 'S' || op === 'I') {
-      templateOffset += len
-    } else if (op === 'D' || op === 'P') {
-      refOffset += len
-    } else if (op !== 'H') {
-      templateOffset += len
-      refOffset += len
-    }
-  }
-  return templateOffset - (refOffset - refCoord)
-}
-
 export function getMismatches(
   cigarString: string,
   mdString: string,
@@ -215,18 +211,16 @@ export function getMismatches(
   qual?: Buffer,
 ): Mismatch[] {
   let mismatches: Mismatch[] = []
-  let cigarOps: string[] = []
 
   // parse the CIGAR tag if it has one
   if (cigarString) {
-    cigarOps = parseCigar(cigarString)
-    mismatches = mismatches.concat(cigarToMismatches(cigarOps, seq, qual))
+    mismatches = mismatches.concat(cigarToMismatches(cigarString, seq, qual))
   }
 
   // now let's look for CRAM or MD mismatches
   if (mdString) {
     mismatches = mismatches.concat(
-      mdToMismatches(mdString, cigarOps, mismatches, seq, qual),
+      mdToMismatches(mdString, cigarString, mismatches, seq, qual),
     )
   }
 
@@ -241,7 +235,7 @@ export function getMismatches(
 }
 
 // adapted from minimap2 code static void write_MD_core function
-export function generateMD(target: string, query: string, cigar: string) {
+export function generateMD(target: string, query: string, cigarString: string) {
   let queryOffset = 0
   let targetOffset = 0
   let lengthMD = 0
@@ -249,39 +243,45 @@ export function generateMD(target: string, query: string, cigar: string) {
     console.warn('no ref supplied to generateMD')
     return ''
   }
-  const cigarOps = parseCigar(cigar)
   let str = ''
-  for (let i = 0; i < cigarOps.length; i += 2) {
-    const len = +cigarOps[i]
-    const op = cigarOps[i + 1]
-    if (op === 'M' || op === 'X' || op === '=') {
-      for (let j = 0; j < len; j++) {
-        if (
-          query[queryOffset + j].toLowerCase() !==
-          target[targetOffset + j].toLowerCase()
-        ) {
-          str += `${lengthMD}${target[targetOffset + j].toUpperCase()}`
-          lengthMD = 0
-        } else {
-          lengthMD++
+  let currLen = ''
+  for (let i = 0; i < cigarString.length; i++) {
+    const d = cigarString.codePointAt(i) as number
+    if (d >= 48 && d <= 57) {
+      currLen += cigarString[i]
+    } else {
+      const len = +currLen
+      const op = cigarString[i]
+      currLen = ''
+      if (op === 'M' || op === 'X' || op === '=') {
+        for (let j = 0; j < len; j++) {
+          if (
+            query[queryOffset + j].toLowerCase() !==
+            target[targetOffset + j].toLowerCase()
+          ) {
+            str += `${lengthMD}${target[targetOffset + j].toUpperCase()}`
+            lengthMD = 0
+          } else {
+            lengthMD++
+          }
         }
+        queryOffset += len
+        targetOffset += len
+      } else if (op === 'I') {
+        queryOffset += len
+      } else if (op === 'D') {
+        let tmp = ''
+        for (let j = 0; j < len; j++) {
+          tmp += target[targetOffset + j].toUpperCase()
+        }
+        str += `${lengthMD}^${tmp}`
+        lengthMD = 0
+        targetOffset += len
+      } else if (op === 'N') {
+        targetOffset += len
+      } else if (op === 'S') {
+        queryOffset += len
       }
-      queryOffset += len
-      targetOffset += len
-    } else if (op === 'I') {
-      queryOffset += len
-    } else if (op === 'D') {
-      let tmp = ''
-      for (let j = 0; j < len; j++) {
-        tmp += target[targetOffset + j].toUpperCase()
-      }
-      str += `${lengthMD}^${tmp}`
-      lengthMD = 0
-      targetOffset += len
-    } else if (op === 'N') {
-      targetOffset += len
-    } else if (op === 'S') {
-      queryOffset += len
     }
   }
   if (lengthMD > 0) {
@@ -292,26 +292,32 @@ export function generateMD(target: string, query: string, cigar: string) {
 
 // get relative reference sequence positions for positions given relative to
 // the read sequence
-export function* getNextRefPos(cigarOps: string[], positions: number[]) {
+export function* getNextRefPos(cigarString: string, positions: number[]) {
   let cigarIdx = 0
   let readPos = 0
   let refPos = 0
 
   for (let i = 0; i < positions.length; i++) {
     const pos = positions[i]
-    for (; cigarIdx < cigarOps.length && readPos < pos; cigarIdx += 2) {
-      const len = +cigarOps[cigarIdx]
-      const op = cigarOps[cigarIdx + 1]
-      if (op === 'S' || op === 'I') {
-        readPos += len
-      } else if (op === 'D' || op === 'N') {
-        refPos += len
-      } else if (op === 'M' || op === 'X' || op === '=') {
-        readPos += len
-        refPos += len
+    let currLen = ''
+    for (; cigarIdx < cigarString.length && readPos < pos; cigarIdx++) {
+      const d = cigarString.codePointAt(cigarIdx) as number
+      if (d >= 48 && d <= 57) {
+        currLen += cigarString[cigarIdx]
+      } else {
+        const len = +currLen
+        const op = cigarString[cigarIdx]
+        currLen = ''
+        if (op === 'S' || op === 'I') {
+          readPos += len
+        } else if (op === 'D' || op === 'N') {
+          refPos += len
+        } else if (op === 'M' || op === 'X' || op === '=') {
+          readPos += len
+          refPos += len
+        }
       }
     }
-
     yield positions[i] - readPos + refPos
   }
 }

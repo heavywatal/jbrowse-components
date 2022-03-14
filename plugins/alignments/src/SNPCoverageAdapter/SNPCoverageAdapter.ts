@@ -236,7 +236,7 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
               getModificationPositions(mm, seq, fstrand).forEach(
                 ({ type, positions }) => {
                   const mod = `mod_${type}`
-                  for (const pos of getNextRefPos(cigarOps, positions)) {
+                  for (const pos of getNextRefPos(cigar, positions)) {
                     const epos = pos + fstart - region.start
                     if (
                       epos >= 0 &&
@@ -280,7 +280,7 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
                 ({ type, positions }) => {
                   // we are processing methylation
                   if (type === 'm') {
-                    for (const pos of getNextRefPos(cigarOps, positions)) {
+                    for (const pos of getNextRefPos(cigar, positions)) {
                       const epos = pos + fstart - region.start
                       if (epos >= 0 && epos < methBins.length) {
                         methBins[epos] = 1

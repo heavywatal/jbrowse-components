@@ -349,7 +349,7 @@ export default class PileupRenderer extends BoxRendererType {
       const { type, positions } = modifications[i]
       const col = modificationTagMap[type] || 'black'
       const base = Color(col)
-      for (const readPos of getNextRefPos(cigarOps, positions)) {
+      for (const readPos of getNextRefPos(cigar, positions)) {
         if (readPos >= 0 && start + readPos < end) {
           const [leftPx, rightPx] = bpSpanPx(
             start + readPos,
@@ -396,7 +396,6 @@ export default class PileupRenderer extends BoxRendererType {
     const fend = feature.get('end')
     const seq = feature.get('seq')
     const strand = feature.get('strand')
-    const cigarOps = parseCigar(cigar)
     const { start: rstart, end: rend } = region
 
     const methBins = new Array(rend - rstart).fill(0)
@@ -404,7 +403,7 @@ export default class PileupRenderer extends BoxRendererType {
     for (let i = 0; i < modifications.length; i++) {
       const { type, positions } = modifications[i]
       if (type === 'm' && positions) {
-        for (const pos of getNextRefPos(cigarOps, positions)) {
+        for (const pos of getNextRefPos(cigar, positions)) {
           const epos = pos + fstart - rstart
           if (epos >= 0 && epos < methBins.length) {
             methBins[epos] = 1
