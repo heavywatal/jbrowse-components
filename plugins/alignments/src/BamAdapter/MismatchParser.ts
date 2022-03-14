@@ -171,11 +171,7 @@ export function mdToMismatches(
     if (!Number.isNaN(num)) {
       curr.start += num
     } else if (token.startsWith('^')) {
-      curr.length = token.length - 1
-      curr.base = '*'
-      curr.type = 'deletion'
-      curr.seq = token.substring(1)
-      nextRecord()
+      curr.start += token.length - 1
     } else {
       // mismatch
       for (let j = 0; j < token.length; j += 1) {
@@ -224,14 +220,7 @@ export function getMismatches(
     )
   }
 
-  // uniqify the mismatches
-  const seen: { [index: string]: boolean } = {}
-  return mismatches.filter(m => {
-    const key = `${m.type},${m.start},${m.length}`
-    const s = seen[key]
-    seen[key] = true
-    return !s
-  })
+  return mismatches
 }
 
 // adapted from minimap2 code static void write_MD_core function
