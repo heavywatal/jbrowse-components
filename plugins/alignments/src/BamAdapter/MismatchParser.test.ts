@@ -2,7 +2,6 @@ import {
   generateMD,
   getMismatches,
   cigarToMismatches,
-  parseCigar,
   mdToMismatches,
   getNextRefPos,
   getModificationPositions,

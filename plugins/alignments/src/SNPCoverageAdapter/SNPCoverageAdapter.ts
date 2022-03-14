@@ -11,7 +11,6 @@ import { reduce, filter, toArray } from 'rxjs/operators'
 import { Observable } from 'rxjs'
 import { getTag, getTagAlt } from '../util'
 import {
-  parseCigar,
   getNextRefPos,
   getModificationPositions,
   Mismatch,
@@ -194,7 +193,6 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
             const fstart = feature.get('start')
             const fend = feature.get('end')
             const fstrand = feature.get('strand')
-            const cigarOps = parseCigar(cigar)
 
             for (let j = fstart; j < fend + 1; j++) {
               const i = j - region.start
