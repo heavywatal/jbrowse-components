@@ -225,6 +225,10 @@ export function getMismatches(
 
 // adapted from minimap2 code static void write_MD_core function
 export function generateMD(target: string, query: string, cigarString: string) {
+  if (query.startsWith('=')) {
+    // sequence not available, may be a secondary alignment
+    return query
+  }
   let queryOffset = 0
   let targetOffset = 0
   let lengthMD = 0

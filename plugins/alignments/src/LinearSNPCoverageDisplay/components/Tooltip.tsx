@@ -7,7 +7,9 @@ import { Tooltip } from '@jbrowse/plugin-wiggle'
 type Count = {
   [key: string]: {
     total: number
-    strands: { [key: string]: number }
+    '-1': number
+    '0': number
+    '1': number
   }
 }
 
@@ -22,15 +24,20 @@ type SNPInfo = {
 
 const en = (n: number) => n.toLocaleString('en-US')
 
+function pos(name: string, start: number, end: number) {
+  return [name, start === end ? en(start) : `${en(start)}..${en(end)}`]
+    .filter(f => !!f)
+    .join(':')
+}
+
 const TooltipContents = React.forwardRef(
   ({ feature }: { feature: Feature }, ref: any) => {
-    const start = feature.get('start')
-    const end = feature.get('end')
-    const name = feature.get('refName')
     const info = feature.get('snpinfo') as SNPInfo
-    const loc = [name, start === end ? en(start) : `${en(start)}..${en(end)}`]
-      .filter(f => !!f)
-      .join(':')
+    const loc = pos(
+      feature.get('refName'),
+      feature.get('start'),
+      feature.get('end'),
+    )
 
     const total = info?.total
 
@@ -54,29 +61,26 @@ const TooltipContents = React.forwardRef(
               <td />
             </tr>
 
-            {Object.entries(info).map(([key, entry]) => {
-              return Object.entries(entry).map(([base, score]) => {
-                const { strands } = score
-                return (
-                  <tr key={base}>
-                    <td>{base.toUpperCase()}</td>
-                    <td>{score.total}</td>
-                    <td>
-                      {base === 'total' || base === 'skip'
-                        ? '---'
-                        : `${Math.floor(
-                            (score.total / (total || score.total || 1)) * 100,
-                          )}%`}
-                    </td>
-                    <td>
-                      {strands['-1'] ? `${strands['-1']}(-)` : ''}
-                      {strands['1'] ? `${strands['1']}(+)` : ''}
-                    </td>
-                    <td>{key}</td>
-                  </tr>
-                )
-              })
-            })}
+            {Object.entries(info).map(([key, entry]) =>
+              Object.entries(entry).map(([base, score]) => (
+                <tr key={base}>
+                  <td>{base.toUpperCase()}</td>
+                  <td>{score.total}</td>
+                  <td>
+                    {base === 'total' || base === 'skip'
+                      ? '---'
+                      : `${Math.floor(
+                          (score.total / (total || score.total || 1)) * 100,
+                        )}%`}
+                  </td>
+                  <td>
+                    {score['-1'] ? `${score['-1']}(-)` : ''}
+                    {score['1'] ? `${score['1']}(+)` : ''}
+                  </td>
+                  <td>{key}</td>
+                </tr>
+              )),
+            )}
           </tbody>
         </table>
       </div>
