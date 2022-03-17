@@ -69,21 +69,6 @@ export default class BamSlightlyLazyFeature implements Feature {
     return this.record.get('seq')
   }
 
-  _get_MD() {
-    const md = this.record.get('MD') || this.cachedMD
-    if (!md) {
-      const seq = this.get('seq')
-      if (seq && this.ref) {
-        const cigar = this.get('CIGAR')
-        if (cigar) {
-          this.cachedMD = generateMD(this.ref, seq, cigar)
-          return this.cachedMD
-        }
-      }
-    }
-    return md
-  }
-
   qualRaw() {
     return this.record.qualRaw()
   }
@@ -181,6 +166,7 @@ export default class BamSlightlyLazyFeature implements Feature {
       this.get('CIGAR'),
       this.get('MD'),
       this.get('seq'),
+      this.ref,
       this.qualRaw(),
     )
   }

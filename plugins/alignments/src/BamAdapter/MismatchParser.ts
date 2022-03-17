@@ -16,12 +16,14 @@ export function parseCigar(cigar: string) {
 export function cigarToMismatches(
   cigarString: string,
   seq: string,
+  ref: string,
   qual?: Buffer,
 ): Mismatch[] {
   let currOffset = 0
   let seqOffset = 0
   const mismatches: Mismatch[] = []
   let currLen = ''
+  const hasRefAndSeq = ref && seq
   for (let i = 0; i < cigarString.length; i++) {
     const d = cigarString[i]
     if (d >= '0' && d <= '9') {
@@ -31,6 +33,21 @@ export function cigarToMismatches(
       const op = d
       currLen = ''
       if (op === 'M' || op === '=' || op === 'E') {
+        if (hasRefAndSeq) {
+          for (let j = 0; j < len; j++) {
+            if (
+              seq[seqOffset + j].toUpperCase() !==
+              ref[currOffset + j].toUpperCase()
+            ) {
+              mismatches.push({
+                start: currOffset + j,
+                type: 'mismatch',
+                base: seq[seqOffset + j],
+                length: 1,
+              })
+            }
+          }
+        }
         seqOffset += len
       }
       if (op === 'I') {
@@ -204,13 +221,16 @@ export function getMismatches(
   cigarString: string,
   mdString: string,
   seq: string,
+  ref: string,
   qual?: Buffer,
 ): Mismatch[] {
   let mismatches: Mismatch[] = []
 
   // parse the CIGAR tag if it has one
   if (cigarString) {
-    mismatches = mismatches.concat(cigarToMismatches(cigarString, seq, qual))
+    mismatches = mismatches.concat(
+      cigarToMismatches(cigarString, seq, ref, qual),
+    )
   }
 
   // now let's look for CRAM or MD mismatches
@@ -221,62 +241,6 @@ export function getMismatches(
   }
 
   return mismatches
-}
-
-// adapted from minimap2 code static void write_MD_core function
-export function generateMD(target: string, query: string, cigarString: string) {
-  let queryOffset = 0
-  let targetOffset = 0
-  let lengthMD = 0
-  if (!target) {
-    console.warn('no ref supplied to generateMD')
-    return ''
-  }
-  let str = ''
-  let currLen = ''
-  for (let i = 0; i < cigarString.length; i++) {
-    const d = cigarString[i]
-    if (d >= '0' && d <= '9') {
-      currLen += d
-    } else {
-      const len = +currLen
-      const op = d
-      currLen = ''
-      if (op === 'M' || op === 'X' || op === '=') {
-        for (let j = 0; j < len; j++) {
-          if (
-            query[queryOffset + j].toLowerCase() !==
-            target[targetOffset + j].toLowerCase()
-          ) {
-            str += `${lengthMD}${target[targetOffset + j].toUpperCase()}`
-            lengthMD = 0
-          } else {
-            lengthMD++
-          }
-        }
-        queryOffset += len
-        targetOffset += len
-      } else if (op === 'I') {
-        queryOffset += len
-      } else if (op === 'D') {
-        let tmp = ''
-        for (let j = 0; j < len; j++) {
-          tmp += target[targetOffset + j].toUpperCase()
-        }
-        str += `${lengthMD}^${tmp}`
-        lengthMD = 0
-        targetOffset += len
-      } else if (op === 'N') {
-        targetOffset += len
-      } else if (op === 'S') {
-        queryOffset += len
-      }
-    }
-  }
-  if (lengthMD > 0) {
-    str += lengthMD
-  }
-  return str
 }
 
 // get relative reference sequence positions for positions given relative to

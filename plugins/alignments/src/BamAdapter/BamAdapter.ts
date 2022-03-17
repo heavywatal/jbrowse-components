@@ -139,7 +139,7 @@ export default class BamAdapter extends BaseFeatureDataAdapter {
 
     const seqChunks = await features.pipe(toArray()).toPromise()
 
-    const trimmed: string[] = []
+    let sequence = ''
     seqChunks
       .sort((a, b) => a.get('start') - b.get('start'))
       .forEach(chunk => {
@@ -149,10 +149,9 @@ export default class BamAdapter extends BaseFeatureDataAdapter {
         const trimEnd = Math.min(end - chunkStart, chunkEnd - chunkStart)
         const trimLength = trimEnd - trimStart
         const chunkSeq = chunk.get('seq') || chunk.get('residues')
-        trimmed.push(chunkSeq.substr(trimStart, trimLength))
+        sequence += chunkSeq.substr(trimStart, trimLength)
       })
 
-    const sequence = trimmed.join('')
     if (sequence.length !== end - start) {
       throw new Error(
         `sequence fetch failed: fetching ${refName}:${(
