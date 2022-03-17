@@ -74,8 +74,11 @@ export default class BamSlightlyLazyFeature implements Feature {
     if (!md) {
       const seq = this.get('seq')
       if (seq && this.ref) {
-        this.cachedMD = generateMD(this.ref, this.get('seq'), this.get('CIGAR'))
-        return this.cachedMD
+        const cigar = this.get('CIGAR')
+        if (cigar) {
+          this.cachedMD = generateMD(this.ref, seq, cigar)
+          return this.cachedMD
+        }
       }
     }
     return md

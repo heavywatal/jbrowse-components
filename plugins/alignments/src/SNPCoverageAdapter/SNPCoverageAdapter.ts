@@ -4,11 +4,9 @@ import {
 } from '@jbrowse/core/data_adapters/BaseAdapter'
 import { AugmentedRegion as Region } from '@jbrowse/core/util/types'
 import SimpleFeature, { Feature } from '@jbrowse/core/util/simpleFeature'
-import { readConfObject } from '@jbrowse/core/configuration'
 import SerializableFilterChain from '@jbrowse/core/pluggableElementTypes/renderers/util/serializableFilterChain'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
-import { reduce, filter, toArray } from 'rxjs/operators'
-import { Observable } from 'rxjs'
+import { toArray } from 'rxjs/operators'
 import { getTag, getTagAlt } from '../util'
 import {
   getNextRefPos,
@@ -32,13 +30,13 @@ function isInterbase(type: string) {
 function inc(bin: any, strand: number, type: string, field: string) {
   bin[type][field] = bin[type][field] || { total: 0, '-1': 0, '0': 0, '1': 0 }
   bin[type][field].total++
-  bin[type][field].strands[strand]++
+  bin[type][field][strand]++
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function dec(bin: any, strand: number, type: string, field: string) {
   bin[type][field] = bin[type][field] || { total: 0, '-1': 0, '0': 0, '1': 0 }
   bin[type][field].total--
-  bin[type][field].strands[strand]--
+  bin[type][field][strand]--
 }
 
 export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
@@ -194,7 +192,6 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
       const fstart = feature.get('start')
       const fend = feature.get('end')
       const fstrand = feature.get('strand')
-      const cigarOps = parseCigar(cigar)
 
       for (let j = fstart; j < fend; j++) {
         const i = j - region.start
@@ -232,7 +229,7 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
         getModificationPositions(mm, seq, fstrand).forEach(
           ({ type, positions }) => {
             const mod = `mod_${type}`
-            for (const pos of getNextRefPos(cigarOps, positions)) {
+            for (const pos of getNextRefPos(cigar, positions)) {
               const epos = pos + fstart - region.start
               if (epos >= 0 && epos < bins.length && pos + fstart < fend) {
                 const bin = bins[epos]
@@ -264,7 +261,7 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
           ({ type, positions }) => {
             // we are processing methylation
             if (type === 'm') {
-              for (const pos of getNextRefPos(cigarOps, positions)) {
+              for (const pos of getNextRefPos(cigar, positions)) {
                 const epos = pos + fstart - region.start
                 if (epos >= 0 && epos < methBins.length) {
                   methBins[epos] = 1

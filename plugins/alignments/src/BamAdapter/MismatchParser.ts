@@ -9,7 +9,7 @@ export interface Mismatch {
   seq?: string
   cliplen?: number
 }
-
+const mdRegex = new RegExp(/(\d+|\^[a-z]+|[a-z])/gi)
 export function parseCigar(cigar: string) {
   return (cigar || '').split(/([MIDNSHPX=])/)
 }
@@ -164,7 +164,7 @@ export function mdToMismatches(
   }
 
   // now actually parse the MD string
-  const md = mdstring.match(/(\d+|\^[a-z]+|[a-z])/gi) || []
+  const md = mdstring.match(mdRegex) || []
   for (let i = 0; i < md.length; i++) {
     const token = md[i]
     const num = +token
@@ -187,8 +187,8 @@ export function mdToMismatches(
           }
         }
         const s = cigarString ? getTemplateCoordLocal(curr.start) : curr.start
-        curr.base = seq ? seq.substr(s, 1) : 'X'
-        const qualScore = qual?.slice(s, s + 1)[0]
+        curr.base = seq[s] || 'X'
+        const qualScore = qual?.[s]
         if (qualScore) {
           curr.qual = qualScore
         }
