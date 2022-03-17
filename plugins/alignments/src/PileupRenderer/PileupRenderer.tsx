@@ -11,7 +11,7 @@ import BoxRendererType, {
 import { Theme } from '@material-ui/core'
 import { createJBrowseTheme } from '@jbrowse/core/ui'
 import { Feature } from '@jbrowse/core/util/simpleFeature'
-import { bpSpanPx, iterMap } from '@jbrowse/core/util'
+import { bpSpanPx, iterMap, measureText } from '@jbrowse/core/util'
 import Color from 'color'
 import { Region } from '@jbrowse/core/util/types'
 import { renderToAbstractCanvas } from '@jbrowse/core/util/offscreenCanvasUtils'
@@ -696,12 +696,12 @@ export default class PileupRenderer extends BoxRendererType {
         ctx.fillStyle = baseColor
         ctx.fillRect(leftPx, topPx, widthPx, heightPx)
         const txt = `${mismatch.length}`
-        const rect = ctx.measureText(txt)
-        if (widthPx >= rect.width && heightPx >= heightLim) {
+        const rwidth = measureText(txt, 10)
+        if (widthPx >= rwidth && heightPx >= heightLim) {
           ctx.fillStyle = theme.palette.getContrastText(baseColor)
           ctx.fillText(
             txt,
-            leftPx + (rightPx - leftPx) / 2 - rect.width / 2,
+            (leftPx + rightPx) / 2 - rwidth / 2,
             topPx + heightPx,
           )
         }

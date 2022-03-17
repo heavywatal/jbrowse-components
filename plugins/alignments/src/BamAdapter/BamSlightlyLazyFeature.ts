@@ -66,7 +66,7 @@ export default class BamSlightlyLazyFeature implements Feature {
   }
 
   _get_seq() {
-    return this.record.getReadBases()
+    return this.record.get('seq')
   }
 
   _get_MD() {
