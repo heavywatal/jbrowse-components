@@ -4,17 +4,12 @@ import {
   SimpleFeatureSerialized,
 } from '@jbrowse/core/util/simpleFeature'
 import { BamRecord } from '@gmod/bam'
-import {
-  generateMD,
-  cigarToMismatches,
-  getMismatches,
-  Mismatch,
-} from './MismatchParser'
+import { cigarToMismatches, getMismatches, Mismatch } from './MismatchParser'
+import QuickLRU from 'quick-lru'
 
 import BamAdapter from './BamAdapter'
 
 export default class BamSlightlyLazyFeature implements Feature {
-  private cachedMD = ''
   constructor(
     private record: BamRecord,
     private adapter: BamAdapter,
@@ -141,21 +136,19 @@ export default class BamSlightlyLazyFeature implements Feature {
     }
   }
 
-  _get_skips_and_dels(
-    opts: {
-      cigarAttributeName: string
-    } = {
-      cigarAttributeName: 'CIGAR',
-    },
-  ) {
-    const { cigarAttributeName } = opts
+  _get_skips_and_dels() {
     let mismatches: Mismatch[] = []
 
     // parse the CIGAR tag if it has one
-    const cigarString = this.get(cigarAttributeName)
+    const cigarString = this.get('CIGAR')
     if (cigarString) {
       mismatches = mismatches.concat(
-        cigarToMismatches(cigarString, this.get('seq'), this.qualRaw()),
+        cigarToMismatches(
+          cigarString,
+          this.get('seq'),
+          this.ref,
+          this.qualRaw(),
+        ),
       )
     }
     return mismatches

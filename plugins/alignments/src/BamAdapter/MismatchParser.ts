@@ -16,7 +16,7 @@ export function parseCigar(cigar: string) {
 export function cigarToMismatches(
   cigarString: string,
   seq: string,
-  ref: string,
+  ref?: string,
   qual?: Buffer,
 ): Mismatch[] {
   let currOffset = 0
@@ -221,7 +221,7 @@ export function getMismatches(
   cigarString: string,
   mdString: string,
   seq: string,
-  ref: string,
+  ref?: string,
   qual?: Buffer,
 ): Mismatch[] {
   let mismatches: Mismatch[] = []

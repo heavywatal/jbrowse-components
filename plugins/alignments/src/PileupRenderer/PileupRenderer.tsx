@@ -43,6 +43,15 @@ function getColorBaseMap(theme: Theme) {
   }
 }
 
+function getContrastBaseMap(theme: Theme) {
+  return Object.fromEntries(
+    Object.entries(getColorBaseMap(theme)).map(([key, value]) => [
+      key,
+      theme.palette.getContrastText(value),
+    ]),
+  )
+}
+
 export interface RenderArgsDeserialized extends BoxRenderArgsDeserialized {
   colorBy?: { type: string; tag?: string }
   colorTagMap?: Record<string, string>
@@ -615,9 +624,9 @@ export default class PileupRenderer extends BoxRendererType {
     ctx: CanvasRenderingContext2D,
     feat: LayoutFeature,
     props: RenderArgsDeserializedWithFeaturesAndLayout,
-    theme: Theme,
-    colorForBase: { [key: string]: string },
     opts: {
+      colorForBase: { [key: string]: string }
+      contrastForBase: { [key: string]: string }
       mismatchAlpha?: boolean
       drawSNPs?: boolean
       drawIndels?: boolean
@@ -628,13 +637,15 @@ export default class PileupRenderer extends BoxRendererType {
     },
   ) {
     const {
-      minSubfeatureWidth: minWidth,
+      minSubfeatureWidth,
       largeInsertionIndicatorScale,
       mismatchAlpha,
       drawSNPs = true,
       drawIndels = true,
       charWidth,
       charHeight,
+      colorForBase,
+      contrastForBase,
     } = opts
     const { bpPerPx, regions } = props
     const { heightPx, topPx, feature } = feat
@@ -642,7 +653,7 @@ export default class PileupRenderer extends BoxRendererType {
     const start = feature.get('start')
 
     const pxPerBp = Math.min(1 / bpPerPx, 2)
-    const w = Math.max(minWidth, pxPerBp)
+    const w = Math.max(minSubfeatureWidth, pxPerBp)
     const mismatches: Mismatch[] = feature.get('mismatches')
     const heightLim = charHeight - 2
 
@@ -671,7 +682,7 @@ export default class PileupRenderer extends BoxRendererType {
       const mlen = mismatch.length
       const mbase = mismatch.base
       const [leftPx, rightPx] = bpSpanPx(mstart, mstart + mlen, region, bpPerPx)
-      const widthPx = Math.max(minWidth, Math.abs(leftPx - rightPx))
+      const widthPx = Math.max(minSubfeatureWidth, Math.abs(leftPx - rightPx))
       if (mismatch.type === 'mismatch' && drawSNPs) {
         const baseColor = colorForBase[mismatch.base] || '#888'
 
@@ -682,7 +693,7 @@ export default class PileupRenderer extends BoxRendererType {
         if (widthPx >= charWidth && heightPx >= heightLim) {
           // normal SNP coloring
           ctx.fillStyle = getAlphaColor(
-            theme.palette.getContrastText(baseColor),
+            contrastForBase[mismatch.base],
             mismatch,
           )
           ctx.fillText(
@@ -698,7 +709,7 @@ export default class PileupRenderer extends BoxRendererType {
         const txt = `${mismatch.length}`
         const rwidth = measureText(txt, 10)
         if (widthPx >= rwidth && heightPx >= heightLim) {
-          ctx.fillStyle = theme.palette.getContrastText(baseColor)
+          ctx.fillStyle = contrastForBase.deletion
           ctx.fillText(
             txt,
             (leftPx + rightPx) / 2 - rwidth / 2,
@@ -709,7 +720,7 @@ export default class PileupRenderer extends BoxRendererType {
         ctx.fillStyle = 'purple'
         const pos = leftPx + extraHorizontallyFlippedOffset
         const len = +mismatch.base || mismatch.length
-        const insW = Math.max(minWidth, Math.min(1.2, 1 / bpPerPx))
+        const insW = Math.max(minSubfeatureWidth, Math.min(1.2, 1 / bpPerPx))
         if (len < 10) {
           ctx.fillRect(pos, topPx, insW, heightPx)
           if (1 / bpPerPx >= charWidth) {
@@ -869,6 +880,7 @@ export default class PileupRenderer extends BoxRendererType {
 
     const theme = createJBrowseTheme(configTheme)
     const colorForBase = getColorBaseMap(theme)
+    const contrastForBase = getContrastBaseMap(theme)
     if (!layout) {
       throw new Error(`layout required`)
     }
@@ -887,7 +899,7 @@ export default class PileupRenderer extends BoxRendererType {
         ...props,
         defaultColor,
       })
-      this.drawMismatches(ctx, feat, props, theme, colorForBase, {
+      this.drawMismatches(ctx, feat, props, {
         mismatchAlpha,
         drawSNPs: shouldDrawMismatches(colorBy?.type),
         drawIndels: shouldDrawMismatches(colorBy?.type),
@@ -895,6 +907,8 @@ export default class PileupRenderer extends BoxRendererType {
         minSubfeatureWidth,
         charWidth,
         charHeight,
+        colorForBase,
+        contrastForBase,
       })
       if (showSoftClip) {
         this.drawSoftClipping(ctx, feat, props, config, theme)
