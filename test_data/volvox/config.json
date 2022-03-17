@@ -1695,59 +1695,6 @@
           }
         }
       }
-    },
-    {
-      "type": "AlignmentsTrack",
-      "trackId": "volvox-wgsim.bam",
-      "name": "volvox-wgsim.bam",
-      "metadata": { "source": "wgsim volvox.fa -N 1000000 out1.fq out2.fq" },
-      "adapter": {
-        "type": "BamAdapter",
-        "bamLocation": {
-          "uri": "volvox-wgsim.bam",
-          "locationType": "UriLocation"
-        },
-        "index": {
-          "location": {
-            "uri": "volvox-wgsim.bam.bai",
-            "locationType": "UriLocation"
-          },
-          "indexType": "BAI"
-        },
-        "sequenceAdapter": {
-          "type": "TwoBitAdapter",
-          "twoBitLocation": {
-            "uri": "volvox.2bit",
-            "locationType": "UriLocation"
-          }
-        }
-      },
-      "assemblyNames": ["volvox"]
-    },
-    {
-      "type": "AlignmentsTrack",
-      "trackId": "volvox-wgsim.cram",
-      "name": "volvox-wgsim.cram",
-      "metadata": { "source": "wgsim volvox.fa -N 1000000 out1.fq out2.fq" },
-      "adapter": {
-        "type": "CramAdapter",
-        "cramLocation": {
-          "uri": "volvox-wgsim.cram",
-          "locationType": "UriLocation"
-        },
-        "craiLocation": {
-          "uri": "volvox-wgsim.cram.crai",
-          "locationType": "UriLocation"
-        },
-        "sequenceAdapter": {
-          "type": "TwoBitAdapter",
-          "twoBitLocation": {
-            "uri": "volvox.2bit",
-            "locationType": "UriLocation"
-          }
-        }
-      },
-      "assemblyNames": ["volvox"]
     }
   ],
   "defaultSession": {

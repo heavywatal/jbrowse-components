@@ -241,10 +241,6 @@ export abstract class BaseFeatureDataAdapter extends BaseAdapter {
     })
   }
 
-  public getConf(field: string | string[]) {
-    return readConfObject(this.config, field)
-  }
-
   public async estimateRegionsStats(regions: Region[], opts?: BaseOptions) {
     if (!regions.length) {
       throw new Error('No regions to estimate stats for')

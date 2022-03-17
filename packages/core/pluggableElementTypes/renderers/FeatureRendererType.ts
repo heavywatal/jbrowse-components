@@ -1,5 +1,5 @@
 import { toArray } from 'rxjs/operators'
-import { iterMap } from '../../util'
+import { checkAbortSignal, iterMap } from '../../util'
 import SimpleFeature, {
   Feature,
   SimpleFeatureSerialized,
@@ -178,14 +178,12 @@ export default class FeatureRendererType extends ServerSideRendererType {
             renderArgs,
           )
 
-    const feats = await featureObservable(toArray()).toPromise()
+    const feats = await featureObservable.pipe(toArray()).toPromise()
+    checkAbortSignal(signal)
     return new Map(
-      feats.filter(feat =>
-        this.featurePassesFilters(renderArgs, feat).map(feat => [
-          feat.id(),
-          feat,
-        ]),
-      ),
+      feats
+        .filter(feat => this.featurePassesFilters(renderArgs, feat))
+        .map(feat => [feat.id(), feat]),
     )
   }
 

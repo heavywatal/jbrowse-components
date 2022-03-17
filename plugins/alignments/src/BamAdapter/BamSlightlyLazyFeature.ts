@@ -5,7 +5,6 @@ import {
 } from '@jbrowse/core/util/simpleFeature'
 import { BamRecord } from '@gmod/bam'
 import { cigarToMismatches, getMismatches, Mismatch } from './MismatchParser'
-import QuickLRU from 'quick-lru'
 
 import BamAdapter from './BamAdapter'
 
