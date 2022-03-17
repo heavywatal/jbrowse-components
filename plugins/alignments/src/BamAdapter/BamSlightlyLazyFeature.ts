@@ -7,7 +7,7 @@ import { BamRecord } from '@gmod/bam'
 import {
   generateMD,
   cigarToMismatches,
-  mdToMismatches,
+  getMismatches,
   Mismatch,
 } from './MismatchParser'
 
@@ -176,39 +176,13 @@ export default class BamSlightlyLazyFeature implements Feature {
     return mismatches
   }
 
-  _get_mismatches({
-    cigarAttributeName = 'CIGAR',
-    mdAttributeName = 'MD',
-  }: {
-    cigarAttributeName?: string
-    mdAttributeName?: string
-  } = {}) {
-    let mismatches: Mismatch[] = []
-
-    // parse the CIGAR tag if it has one
-    const cigar = this.get(cigarAttributeName)
-    const seq = this.get('seq')
-    const qual = this.qualRaw()
-    if (cigar) {
-      mismatches = mismatches.concat(cigarToMismatches(cigar, seq, qual))
-    }
-
-    // now let's look for CRAM or MD mismatches
-    const mdString = this.get(mdAttributeName)
-    if (mdString) {
-      mismatches = mismatches.concat(
-        mdToMismatches(mdString, cigar, mismatches, seq, qual),
-      )
-    }
-
-    // uniqify the mismatches
-    const seen: { [index: string]: boolean } = {}
-    return mismatches.filter(m => {
-      const key = `${m.type},${m.start},${m.length}`
-      const s = seen[key]
-      seen[key] = true
-      return !s
-    })
+  _get_mismatches() {
+    return getMismatches(
+      this.get('CIGAR'),
+      this.get('MD'),
+      this.get('seq'),
+      this.qualRaw(),
+    )
   }
 
   _get_clipPos() {

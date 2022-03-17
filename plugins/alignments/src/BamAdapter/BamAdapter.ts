@@ -181,7 +181,7 @@ export default class BamAdapter extends BaseFeatureDataAdapter {
 
       for (const record of records) {
         let ref: string | undefined
-        if (!record.get('md')) {
+        if (!record.get('MD')) {
           ref = await this.seqFetch(
             originalRefName || refName,
             record.get('start'),
