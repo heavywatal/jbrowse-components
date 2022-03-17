@@ -1,4 +1,5 @@
-import { toArray } from 'rxjs/operators'
+import { filter, ignoreElements, tap } from 'rxjs/operators'
+import { checkAbortSignal, iterMap } from '../../util'
 import SimpleFeature, {
   Feature,
   SimpleFeatureSerialized,
@@ -114,7 +115,7 @@ export default class FeatureRendererType extends ServerSideRendererType {
     const serialized = super.serializeResultsInWorker(result, args)
     return {
       ...serialized,
-      features: [], //iterMap(result.features.values(), f => f.toJSON()),
+      features: iterMap(result.features.values(), f => f.toJSON()),
     }
   }
 
@@ -177,8 +178,22 @@ export default class FeatureRendererType extends ServerSideRendererType {
             renderArgs,
           )
 
-    const feats = await featureObservable.pipe(toArray()).toPromise()
-    return new Map(feats.map(feat => [feat.id(), feat]))
+    await featureObservable
+      .pipe(
+        tap(() => checkAbortSignal(signal)),
+        filter(feature => this.featurePassesFilters(renderArgs, feature)),
+        tap(feature => {
+          const id = feature.id()
+          if (!id) {
+            throw new Error(`invalid feature id "${id}"`)
+          }
+          features.set(id, feature)
+        }),
+        ignoreElements(),
+      )
+      .toPromise()
+
+    return features
   }
 
   /**
