@@ -50,6 +50,7 @@ export default class BamAdapter extends BaseFeatureDataAdapter {
             : undefined,
         chunkSizeLimit: Infinity,
         fetchSizeLimit: Infinity,
+        yieldThreadTime: Infinity,
       })
 
       const adapterConfig = readConfObject(this.config, 'sequenceAdapter')
