@@ -38,7 +38,6 @@ export default class BamAdapter extends BaseFeatureDataAdapter {
       const bamLocation = readConfObject(this.config, 'bamLocation')
       const location = readConfObject(this.config, ['index', 'location'])
       const indexType = readConfObject(this.config, ['index', 'indexType'])
-      const chunkSizeLimit = readConfObject(this.config, 'chunkSizeLimit')
       const bam = new BamFile({
         bamFilehandle: openLocation(bamLocation, this.pluginManager),
         csiFilehandle:
@@ -49,8 +48,8 @@ export default class BamAdapter extends BaseFeatureDataAdapter {
           indexType !== 'CSI'
             ? openLocation(location, this.pluginManager)
             : undefined,
-        chunkSizeLimit,
-        fetchSizeLimit: 100_000_000,
+        chunkSizeLimit: Infinity,
+        fetchSizeLimit: Infinity,
       })
 
       const adapterConfig = readConfObject(this.config, 'sequenceAdapter')
