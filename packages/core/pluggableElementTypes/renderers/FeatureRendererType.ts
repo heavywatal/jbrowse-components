@@ -113,9 +113,10 @@ export default class FeatureRendererType extends ServerSideRendererType {
     args: RenderArgsDeserialized,
   ): ResultsSerialized {
     const serialized = super.serializeResultsInWorker(result, args)
+    const { features } = result
     return {
       ...serialized,
-      features: iterMap(result.features.values(), f => f.toJSON()),
+      features: iterMap(features.values(), f => f.toJSON(), features.size),
     }
   }
 
