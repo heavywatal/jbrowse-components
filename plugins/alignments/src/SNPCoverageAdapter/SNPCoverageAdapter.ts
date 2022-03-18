@@ -62,15 +62,15 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
   getFeatures(region: Region, opts: SNPCoverageOptions = {}) {
     return ObservableCreate<Feature>(async observer => {
       const { subadapter } = await this.configure()
-      const feats = await subadapter
+      let feats = await subadapter
         .getFeatures(region, opts)
         .pipe(toArray())
         .toPromise()
 
-      // if (opts.filters) {
-      //   const { filters } = opts
-      //   stream = stream.pipe(filter(f => filters.passes(f, opts)))
-      // }
+      if (opts.filters) {
+        const { filters } = opts
+        feats = feats.filter(f => filters.passes(f, opts))
+      }
 
       const { bins, skipmap } = await this.generateCoverageBins(
         feats,
