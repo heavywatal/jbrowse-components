@@ -7,12 +7,7 @@ import SimpleFeature, { Feature } from '@jbrowse/core/util/simpleFeature'
 import SerializableFilterChain from '@jbrowse/core/pluggableElementTypes/renderers/util/serializableFilterChain'
 import { ObservableCreate } from '@jbrowse/core/util/rxjs'
 import { toArray } from 'rxjs/operators'
-import {
-  getTag,
-  getTagAlt,
-  fetchSequence,
-  shouldFetchReferenceSequence,
-} from '../util'
+import { getTag, getTagAlt, fetchSequence } from '../util'
 import {
   parseCigar,
   getNextRefPos,
@@ -100,12 +95,14 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
       )
 
       bins.forEach((bin, index) => {
+        const { refbase, ...rest } = bin
         observer.next(
           new SimpleFeature({
             id: `${this.id}-${region.start}-${index}`,
             data: {
               score: bin.total,
-              snpinfo: bin,
+              refbase,
+              snpinfo: rest,
               start: region.start + index,
               end: region.start + index + 1,
               refName: region.refName,
@@ -172,13 +169,13 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
     // - delskips deletions or introns that don't contribute to coverage
     type BinType = { total: number; strands: { [key: string]: number } }
 
-    const regionSeq =
-      features.length && shouldFetchReferenceSequence(opts.colorBy?.type)
-        ? await this.fetchSequence(region)
-        : undefined
+    const regionSeq = features.length
+      ? await this.fetchSequence(region)
+      : undefined
 
     const bins = [] as {
       total: number
+      refbase?: string
       lowqual: BinType
       cov: BinType
       delskips: BinType
@@ -206,6 +203,7 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
           }
           if (j !== fend) {
             bin.total++
+            bin.refbase = regionSeq[i]
             inc(bin, fstrand, 'ref', 'ref')
           }
           bins[i] = bin
