@@ -38,6 +38,7 @@ export function cigarToMismatches(
               start: roffset + j,
               type: 'mismatch',
               base: seq[soffset + j],
+              altbase: ref[roffset + j],
               length: 1,
             })
           }
