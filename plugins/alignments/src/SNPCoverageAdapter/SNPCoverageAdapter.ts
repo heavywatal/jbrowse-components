@@ -100,12 +100,14 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
       )
 
       bins.forEach((bin, index) => {
+        const { refbase, ...rest } = bin
         observer.next(
           new SimpleFeature({
             id: `${this.id}-${region.start}-${index}`,
             data: {
               score: bin.total,
-              snpinfo: bin,
+              refbase,
+              snpinfo: rest,
               start: region.start + index,
               end: region.start + index + 1,
               refName: region.refName,
@@ -179,6 +181,7 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
 
     const bins = [] as {
       total: number
+      refbase?: string
       lowqual: BinType
       cov: BinType
       delskips: BinType
@@ -307,6 +310,7 @@ export default class SNPCoverageAdapter extends BaseFeatureDataAdapter {
                   bin.total--
                 } else if (!interbase) {
                   inc(bin, fstrand, 'cov', base)
+                  bin.refbase = mismatch.altbase
                 }
               }
             }
