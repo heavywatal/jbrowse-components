@@ -32,8 +32,8 @@
     "@jbrowse/react-linear-genome-view": "^1.6.9",
     "abortcontroller-polyfill": "^1.7.3",
     "mobx": "^5.10.1",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
     "tmp": "^0.2.1",
     "yargs": "^17.3.0"
   },
