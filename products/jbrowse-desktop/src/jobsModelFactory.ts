@@ -11,6 +11,7 @@ import {
   createTextSearchConf,
   findTrackConfigsToIndex,
 } from '@jbrowse/text-indexing'
+import { isSessionModelWithWidgets } from '@jbrowse/core/util'
 
 interface Track {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -69,14 +70,30 @@ export default function jobsModelFactory(pluginManager: PluginManager) {
       },
     }))
     .actions(self => ({
+      getJobStatusWidget() {
+        const { session } = self
+        const { widgets } = session
+        let jobStatusWidget = widgets.get('JobsList')
+        if (!jobStatusWidget) {
+          jobStatusWidget = session.addWidget('JobsListWidget', 'JobsList')
+        }
+        return jobStatusWidget
+      },
+    }))
+    .actions(self => ({
       setRunning(running: boolean) {
         self.running = running
       },
       setStatus(arg: string) {
         const progress = +arg
+        const jobStatusWidget = self.getJobStatusWidget()
         if (isNaN(progress)) {
+          // not sure how to get current job name
+          jobStatusWidget.updateJobStatusMessage(jobName, arg)
           this.setStatusMessage(arg)
         } else {
+          // not sure how to get current job name
+          jobStatusWidget.updateJobProgressPct(jobName, progress)
           self.status = progress
         }
       },
@@ -191,10 +208,23 @@ export default function jobsModelFactory(pluginManager: PluginManager) {
         return
       },
       async runJob() {
+        const { session } = self
         if (self.jobsQueue.length) {
           const firstIndexingJob = self.jobsQueue[0] as JobsEntry
           // TODO: decide how to run that type of job
           // For now only running indexing jobs
+          if (isSessionModelWithWidgets(session)) {
+            const jobStatusWidget = self.getJobStatusWidget()
+            session.showWidget(jobStatusWidget)
+            const { name, statusMessage, progressPct, cancelCallback } =
+              firstIndexingJob
+            jobStatusWidget.addJob({
+              name,
+              statusMessage,
+              progressPct,
+              cancelCallback,
+            })
+          }
           await this.runIndexingJob(firstIndexingJob)
         }
         return
