@@ -3,20 +3,15 @@ import React, { useState } from 'react'
 import { observer } from 'mobx-react'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
-  Divider,
-  IconButton,
   FormControlLabel,
   Checkbox,
   makeStyles,
 } from '@material-ui/core'
-import CloseIcon from '@material-ui/icons/Close'
+import { Dialog } from '@jbrowse/core/ui'
 import { getSnapshot } from 'mobx-state-tree'
-import { getSession } from '@jbrowse/core/util'
-import { Feature } from '@jbrowse/core/util/simpleFeature'
+import { getSession, Feature } from '@jbrowse/core/util'
 
 const useStyles = makeStyles(theme => ({
   closeButton: {
@@ -46,20 +41,7 @@ function BreakendOptionDialog({
   const [mirrorTracks, setMirrorTracks] = useState(true)
 
   return (
-    <Dialog open onClose={handleClose}>
-      <DialogTitle>
-        Breakpoint split view options
-        {handleClose ? (
-          <IconButton
-            className={classes.closeButton}
-            onClick={() => handleClose()}
-          >
-            <CloseIcon />
-          </IconButton>
-        ) : null}
-      </DialogTitle>
-      <Divider />
-
+    <Dialog open onClose={handleClose} title="Breakpoint split view options">
       <DialogContent>
         <FormControlLabel
           className={classes.block}

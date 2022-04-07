@@ -1,28 +1,11 @@
 import React, { useState, useEffect } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Typography,
-  makeStyles,
-} from '@material-ui/core'
-import CloseIcon from '@material-ui/icons/Close'
-import { readConfObject } from '../configuration'
+import { DialogContent, Typography } from '@material-ui/core'
+import Dialog from './Dialog'
+import { readConfObject, AnyConfigurationModel } from '../configuration'
 import { getSession } from '../util'
 import { BaseCard, Attributes } from '../BaseFeatureWidget/BaseFeatureDetail'
-import { AnyConfigurationModel } from '../configuration/configurationSchema'
 
 type FileInfo = Record<string, unknown> | string
-
-const useStyles = makeStyles(theme => ({
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-}))
 
 export default function AboutDialog({
   config,
@@ -31,7 +14,6 @@ export default function AboutDialog({
   config: AnyConfigurationModel
   handleClose: () => void
 }) {
-  const classes = useStyles()
   const [info, setInfo] = useState<FileInfo>()
   const [error, setError] = useState<unknown>()
   const session = getSession(config)
@@ -85,16 +67,7 @@ export default function AboutDialog({
         }
       : info || {}
   return (
-    <Dialog open onClose={handleClose}>
-      <DialogTitle>
-        {trackName}
-        <IconButton
-          className={classes.closeButton}
-          onClick={() => handleClose()}
-        >
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+    <Dialog open onClose={handleClose} title={trackName}>
       <DialogContent>
         <BaseCard title="Configuration">
           <Attributes

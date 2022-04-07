@@ -34,10 +34,6 @@ const ResetComponent = ({
     </>
   )
 }
-ResetComponent.propTypes = {
-  onFactoryReset: PropTypes.func.isRequired,
-  resetButtonText: PropTypes.string.isRequired,
-}
 
 const FatalErrorDialog = ({
   componentStack,
