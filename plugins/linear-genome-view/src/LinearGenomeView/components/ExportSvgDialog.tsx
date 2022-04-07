@@ -1,28 +1,15 @@
 import React, { useState } from 'react'
-import { makeStyles } from '@material-ui/core/styles'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
-  IconButton,
   Checkbox,
   FormControlLabel,
   CircularProgress,
   Typography,
 } from '@material-ui/core'
-import CloseIcon from '@material-ui/icons/Close'
+import { Dialog } from '@jbrowse/core/ui'
 import { LinearGenomeViewModel as LGV } from '..'
-
-const useStyles = makeStyles(theme => ({
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-}))
 
 export default function ExportSvgDlg({
   model,
@@ -36,15 +23,8 @@ export default function ExportSvgDlg({
   const [rasterizeLayers, setRasterizeLayers] = useState(offscreenCanvas)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<unknown>()
-  const classes = useStyles()
   return (
-    <Dialog open onClose={handleClose}>
-      <DialogTitle>
-        Export SVG
-        <IconButton className={classes.closeButton} onClick={handleClose}>
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
+    <Dialog open onClose={handleClose} title="Export SVG">
       <DialogContent>
         {error ? (
           <div style={{ color: 'red' }}>{`${error}`}</div>

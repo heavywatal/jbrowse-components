@@ -3,12 +3,9 @@ import { getEnv, resolveIdentifier, getRoot } from 'mobx-state-tree'
 import { getSession } from '@jbrowse/core/util'
 import {
   Button,
-  Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   Divider,
-  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -17,22 +14,9 @@ import {
   TableRow,
   Typography,
   Paper,
-  makeStyles,
 } from '@material-ui/core'
-import CloseIcon from '@material-ui/icons/Close'
+import { Dialog } from '@jbrowse/core/ui'
 import { LinearGenomeViewModel } from '../..'
-
-export const useStyles = makeStyles(theme => ({
-  dialogContent: {
-    width: '80em',
-  },
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-}))
 
 export default function SearchResultsDialog({
   model,
@@ -43,7 +27,6 @@ export default function SearchResultsDialog({
   optAssemblyName?: string
   handleClose: () => void
 }) {
-  const classes = useStyles()
   const session = getSession(model)
   const { pluginManager } = getEnv(session)
   const { assemblyManager } = session
@@ -98,22 +81,7 @@ export default function SearchResultsDialog({
   }
 
   return (
-    <Dialog open maxWidth="xl" onClose={handleClose}>
-      <DialogTitle>
-        Search results
-        {handleClose ? (
-          <IconButton
-            data-testid="close-resultsDialog"
-            className={classes.closeButton}
-            onClick={() => {
-              handleClose()
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        ) : null}
-      </DialogTitle>
-      <Divider />
+    <Dialog open maxWidth="xl" onClose={handleClose} title="Search results">
       <DialogContent>
         {!model.searchResults?.length ? (
           <Typography>

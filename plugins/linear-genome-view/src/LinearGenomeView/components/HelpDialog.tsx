@@ -1,48 +1,19 @@
 import React from 'react'
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  IconButton,
-  makeStyles,
-} from '@material-ui/core'
-import CloseIcon from '@material-ui/icons/Close'
-
-export const useStyles = makeStyles(theme => ({
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
-}))
+import { Button, DialogActions, DialogContent } from '@material-ui/core'
+import { Dialog } from '@jbrowse/core/ui'
 
 export default function HelpDialog({
   handleClose,
 }: {
   handleClose: () => void
 }) {
-  const classes = useStyles()
   return (
-    <Dialog open maxWidth="xl" onClose={handleClose}>
-      <DialogTitle>
-        Using the search box
-        {handleClose ? (
-          <IconButton
-            data-testid="close-resultsDialog"
-            className={classes.closeButton}
-            onClick={() => {
-              handleClose()
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        ) : null}
-      </DialogTitle>
-      <Divider />
+    <Dialog
+      open
+      maxWidth="xl"
+      onClose={handleClose}
+      title="Using the search box"
+    >
       <DialogContent>
         <h3>Searching</h3>
         <ul>
@@ -83,7 +54,6 @@ export default function HelpDialog({
           </li>
         </ul>
       </DialogContent>
-      <Divider />
       <DialogActions>
         <Button onClick={() => handleClose()} color="primary">
           Close

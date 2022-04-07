@@ -3,29 +3,23 @@ import React, { useEffect, useMemo, useState } from 'react'
 import {
   Button,
   CircularProgress,
-  Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   Container,
   Typography,
-  Divider,
-  IconButton,
   TextField,
   makeStyles,
 } from '@material-ui/core'
+import copy from 'copy-to-clipboard'
 import { observer } from 'mobx-react'
 import { saveAs } from 'file-saver'
-import { Region } from '@jbrowse/core/util/types'
 import { getConf } from '@jbrowse/core/configuration'
-import copy from 'copy-to-clipboard'
-import { getSession } from '@jbrowse/core/util'
-import { Feature } from '@jbrowse/core/util/simpleFeature'
+import { getSession, Feature, Region } from '@jbrowse/core/util'
+import { Dialog } from '@jbrowse/core/ui'
 import { formatSeqFasta } from '@jbrowse/core/util/formatFastaStrings'
 
 // icons
 import { ContentCopy as ContentCopyIcon } from '@jbrowse/core/ui/Icons'
-import CloseIcon from '@material-ui/icons/Close'
 import GetAppIcon from '@material-ui/icons/GetApp'
 
 // locals
@@ -35,12 +29,7 @@ const useStyles = makeStyles(theme => ({
   loadingMessage: {
     padding: theme.spacing(5),
   },
-  closeButton: {
-    position: 'absolute',
-    right: theme.spacing(1),
-    top: theme.spacing(1),
-    color: theme.palette.grey[500],
-  },
+
   dialogContent: {
     width: '80em',
   },
@@ -174,27 +163,12 @@ function SequenceDialog({
       data-testid="sequence-dialog"
       maxWidth="xl"
       open
-      onClose={handleClose}
-      aria-labelledby="alert-dialog-title"
-      aria-describedby="alert-dialog-description"
+      onClose={() => {
+        handleClose()
+        model.setOffsets(undefined, undefined)
+      }}
+      title="Reference sequence"
     >
-      <DialogTitle id="alert-dialog-title">
-        Reference sequence
-        {handleClose ? (
-          <IconButton
-            data-testid="close-seqDialog"
-            className={classes.closeButton}
-            onClick={() => {
-              handleClose()
-              model.setOffsets(undefined, undefined)
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        ) : null}
-      </DialogTitle>
-      <Divider />
-
       <DialogContent>
         {error ? <Typography color="error">{`${error}`}</Typography> : null}
         {loading && !error ? (
