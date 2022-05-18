@@ -8,6 +8,8 @@ import { ixIxxStream } from 'ixixx'
 import { Track, indexType, supportedIndexingAdapters } from './util'
 import { checkAbortSignal } from '@jbrowse/core/util'
 
+// TODO: move statusCallback into an update progress callback 
+// share update progress callback with cli
 export async function indexTracks(args: {
   tracks: Track[]
   outLocation?: string

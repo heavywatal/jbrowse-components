@@ -19,6 +19,7 @@ import {
 } from '../types/common'
 import fromEntries from 'object.fromentries'
 
+// TODO: wire up text-indexing package
 if (!Object.fromEntries) {
   // @ts-ignore
   fromEntries.shim()
@@ -107,6 +108,7 @@ export default class TextIndex extends JBrowseCommand {
     const { flags } = this.parse(TextIndex)
     const { perTrack, file } = flags
 
+    // TODO: replace functions with text indexing package functions
     if (file) {
       await this.indexFileList()
     } else if (perTrack) {
