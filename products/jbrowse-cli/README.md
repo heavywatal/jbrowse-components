@@ -41,7 +41,6 @@ It is likely preferable in most cases to install the tools globally with `npm in
 - [`jbrowse create LOCALPATH`](#jbrowse-create-localpath)
 - [`jbrowse help [COMMAND]`](#jbrowse-help-command)
 - [`jbrowse set-default-session`](#jbrowse-set-default-session)
-- [`jbrowse text-index`](#jbrowse-text-index)
 - [`jbrowse upgrade [LOCALPATH]`](#jbrowse-upgrade-localpath)
 
 ## `jbrowse add-assembly SEQUENCE`
@@ -439,65 +438,6 @@ EXAMPLES
 ```
 
 _See code: [src/commands/set-default-session.ts](https://github.com/GMOD/jbrowse-components/blob/v1.7.7/products/jbrowse-cli/src/commands/set-default-session.ts)_
-
-## `jbrowse text-index`
-
-Make a text-indexing file for any given track(s).
-
-```
-USAGE
-  $ jbrowse text-index
-
-OPTIONS
-  -a, --assemblies=assemblies  Specify the assembl(ies) to create an index for. If unspecified, creates an index for
-                               each assembly in the config
-
-  -h, --help                   show CLI help
-
-  -q, --quiet                  Hide the progress bars
-
-  --attributes=attributes      [default: Name,ID] Comma separated list of attributes to index
-
-  --dryrun                     Just print out tracks that will be indexed by the process, without doing any indexing
-
-  --exclude=exclude            [default: CDS,exon] Adds gene type to list of excluded types
-
-  --file=file                  File or files to index (can be used to create trix indexes for embedded component use
-                               cases not using a config.json for example)
-
-  --force                      Overwrite previously existing indexes
-
-  --out=out                    Synonym for target
-
-  --perTrack                   If set, creates an index per track
-
-  --prefixSize=prefixSize      [default: 6] Specify the prefix size for the ixx index, increase size if many of your
-                               gene IDs have same prefix e.g. Z000000001, Z000000002
-
-  --target=target              Path to config file in JB2 installation directory to read from.
-
-  --tracks=tracks              Specific tracks to index, formatted as comma separated trackIds. If unspecified, indexes
-                               all available tracks
-
-EXAMPLES
-  # indexes all tracks that it can find in the current directory's config.json
-  $ jbrowse text-index
-
-  # indexes specific trackIds that it can find in the current directory's config.json
-  $ jbrowse text-index --tracks=track1,track2,track3
-
-  # indexes all tracks in a directory's config.json or in a specific config file
-  $ jbrowse text-index --out /path/to/jb2/
-
-  # indexes only a specific assembly, and overwrite what was previously there using force (which is needed if a previous
-   index already existed)
-  $ jbrowse text-index -a hg19 --force
-
-  # create index for some files for use in @jbrowse/react-linear-genome-view or similar
-  $ jbrowse text-index --file myfile.gff3.gz --file myfile.vcfgz --out indexes
-```
-
-_See code: [src/commands/text-index.ts](https://github.com/GMOD/jbrowse-components/blob/v1.7.7/products/jbrowse-cli/src/commands/text-index.ts)_
 
 ## `jbrowse upgrade [LOCALPATH]`
 

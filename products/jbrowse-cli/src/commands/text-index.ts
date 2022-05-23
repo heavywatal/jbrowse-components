@@ -12,11 +12,15 @@ import JBrowseCommand, {
   UriLocation,
   LocalPathLocation,
 } from '../base'
+// import {
+//   generateMeta,
+//   supported,
+//   guessAdapterFromFileName,
+// } from '../types/common'
 import {
   generateMeta,
-  supported,
-  guessAdapterFromFileName,
 } from '../types/common'
+import {supportedIndexingAdapters, guessAdapterFromFileName } from '@jbrowse/text-indexing'
 import fromEntries from 'object.fromentries'
 
 // TODO: wire up text-indexing package
@@ -331,7 +335,7 @@ export default class TextIndex extends JBrowseCommand {
 
     const configs = file
       .map(file => guessAdapterFromFileName(file))
-      .filter(fileConfig => supported(fileConfig.adapter.type))
+      .filter(fileConfig => supportedIndexingAdapters(fileConfig.adapter.type))
 
     await this.indexDriver({
       configs,
@@ -480,7 +484,7 @@ export default class TextIndex extends JBrowseCommand {
         }
         return currentTrack
       })
-      .filter(track => supported(track.adapter?.type))
+      .filter(track => supportedIndexingAdapters(track.adapter?.type))
       .filter(track =>
         assemblyName ? track.assemblyNames.includes(assemblyName) : true,
       )
